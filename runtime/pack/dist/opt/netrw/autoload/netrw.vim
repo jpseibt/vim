@@ -2864,6 +2864,43 @@ function s:NetrwBookHistHandler(chg,curdir)
     let @@= ykeep
 endfunction
 
+" s:NetrwBookGoto: this function lists the bookmarks from g:netrw_bookmarklist {{{2
+"                  and prompts the user for a number to goto (similar to `g]`).
+function s:NetrwBookGoto()
+    if !exists('g:netrw_bookmarklist') || empty(g:netrw_bookmarklist)
+        echo 'Bookmarks list is empty.'
+        return
+    endif
+
+    let goto_list = [' #  Goto Bookmark:']
+    let len_bookmarklist = len(g:netrw_bookmarklist)
+    let i = 0
+    while i < len_bookmarklist
+        call add(goto_list, printf("%2d - %s", i + 1, g:netrw_bookmarklist[i]))
+        let i += 1
+    endwhile
+
+    let bookmark_num = inputlist(goto_list)
+
+    " Follow logic from s:NetrwBookHistHandler a:chg == 1
+    "elseif a:chg == 1
+    "    " change to the bookmarked directory
+    "    if exists("g:netrw_bookmarklist[v:count-1]")
+    "        exe "NetrwKeepj e ".fnameescape(g:netrw_bookmarklist[v:count-1])
+    "    else
+    "        echomsg "Sorry, bookmark#".v:count." doesn't exist!"
+    "    endif
+    " Bookmark numbers start from 1
+    if bookmark_num > 0
+        if bookmark_num <= len_bookmarklist
+            exe 'NetrwKeepj e ' . fnameescape(g:netrw_bookmarklist[bookmark_num - 1])
+        else
+            echomsg 'Sorry, bookmark#' . bookmark_num . " doesn't exist!"
+        endif
+    endif
+
+endfunction
+
 " s:NetrwBookHistRead: this function reads bookmarks and history {{{2
 "  Will source the history file (.netrwhist) only if the g:netrw_disthistmax is > 0.
 "                      Sister function: s:NetrwBookHistSave()
@@ -4836,6 +4873,7 @@ function s:NetrwMaps(islocal)
     if !hasmapto('<Plug>NetrwServerEdit')        |nmap <buffer> <silent> <nowait> <c-r>   <Plug>NetrwServerEdit|endif
     if !hasmapto('<Plug>NetrwMakeDir')           |nmap <buffer> <silent> <nowait> d       <Plug>NetrwMakeDir|endif
     if !hasmapto('<Plug>NetrwBookHistHandler_gb')|nmap <buffer> <silent> <nowait> gb      <Plug>NetrwBookHistHandler_gb|endif
+    if !hasmapto('<Plug>NetrwBookGoto')          |nmap <buffer> <silent> <nowait> gtb     <Plug>NetrwBookGoto|endif
 
     if a:islocal
         " local normal-mode maps {{{3
@@ -4850,6 +4888,7 @@ function s:NetrwMaps(islocal)
         nnoremap <buffer> <silent> <Plug>NetrwServerEdit             :<c-u>call <SID>NetrwServerEdit(3,<SID>NetrwGetWord())<cr>
         nnoremap <buffer> <silent> <Plug>NetrwMakeDir                :<c-u>call <SID>NetrwMakeDir("")<cr>
         nnoremap <buffer> <silent> <Plug>NetrwBookHistHandler_gb     :<c-u>call <SID>NetrwBookHistHandler(1,b:netrw_curdir)<cr>
+        nnoremap <buffer> <silent> <Plug>NetrwBookGoto               :<c-u>call <SID>NetrwBookGoto()<cr>
         " ---------------------------------------------------------------------
         nnoremap <buffer> <silent> <nowait> gd       :<c-u>call <SID>NetrwForceChgDir(1,<SID>NetrwGetWord())<cr>
         nnoremap <buffer> <silent> <nowait> gf       :<c-u>call <SID>NetrwForceFile(1,<SID>NetrwGetWord())<cr>
@@ -4962,6 +5001,7 @@ function s:NetrwMaps(islocal)
         nnoremap <buffer> <silent> <Plug>NetrwLocalBrowseCheck       :<c-u>call <SID>NetrwBrowse(0,<SID>NetrwBrowseChgDir(0,<SID>NetrwGetWord(),1))<cr>
         nnoremap <buffer> <silent> <Plug>NetrwServerEdit             :<c-u>call <SID>NetrwServerEdit(2,<SID>NetrwGetWord())<cr>
         nnoremap <buffer> <silent> <Plug>NetrwBookHistHandler_gb     :<c-u>call <SID>NetrwBookHistHandler(1,b:netrw_curdir)<cr>
+        nnoremap <buffer> <silent> <Plug>NetrwBookGoto               :<c-u>call <SID>NetrwBookGoto()<cr>
         " ---------------------------------------------------------------------
         nnoremap <buffer> <silent> <nowait> gd       :<c-u>call <SID>NetrwForceChgDir(0,<SID>NetrwGetWord())<cr>
         nnoremap <buffer> <silent> <nowait> gf       :<c-u>call <SID>NetrwForceFile(0,<SID>NetrwGetWord())<cr>
