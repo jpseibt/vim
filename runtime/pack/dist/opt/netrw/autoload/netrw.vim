@@ -2745,10 +2745,10 @@ function s:NetrwBookHistHandler(chg,curdir)
             " v:count value is set to zero if no count (prefix) is given to the `gb` map
             if bookmark_num == 0
                 " list bookmarks and prompt for a bookmark number
-                let goto_list = [" #  Goto Bookmark:"]
+                let goto_list = [" # | Goto Bookmark:"]
                 let i = 0
                 while i < len_bookmarklist
-                    call add(goto_list, printf("%2d - %s", i + 1, g:netrw_bookmarklist[i]))
+                    call add(goto_list, printf("%3d| %s", i + 1, g:netrw_bookmarklist[i]))
                     let i += 1
                 endwhile
                 let bookmark_num = inputlist(goto_list)
@@ -2867,13 +2867,35 @@ function s:NetrwBookHistHandler(chg,curdir)
         if exists("s:netrwmarkfilelist_{curbufnr}")
             call s:NetrwBookmark(1)
             echo "removed marked files from bookmarks"
+        elseif exists("g:netrw_bookmarklist") && !empty(g:netrw_bookmarklist)
+            let len_bookmarklist = len(g:netrw_bookmarklist)
+            let bookmark_num = v:count
+
+            " v:count value is set to zero if no count (prefix) is given to the `gb` map
+            if bookmark_num == 0
+                " list bookmarks and prompt for a bookmark number
+                let goto_list = [" # | Delete Bookmark:"]
+                let i = 0
+                while i < len_bookmarklist
+                    call add(goto_list, printf("%3d| %s", i + 1, g:netrw_bookmarklist[i]))
+                    let i += 1
+                endwhile
+                let bookmark_num = inputlist(goto_list)
+            endif
+
+            if bookmark_num > 0
+                if bookmark_num <= len_bookmarklist
+                    let bookmark_path = g:netrw_bookmarklist[bookmark_num - 1]
+                    call s:MergeBookmarks()
+                    NetrwKeepj call remove(g:netrw_bookmarklist, bookmark_num - 1)
+                    echo "removed " . bookmark_path . " from g:netrw_bookmarklist."
+                else
+                    echomsg "Sorry, bookmark#" . bookmark_num . " doesn't exist!"
+                endif
+            endif
+            " Exit silently if user cancels with `q` or empty after inputlist()
         else
-            " delete the v:count'th bookmark
-            let iremove = v:count
-            let dremove = g:netrw_bookmarklist[iremove - 1]
-            call s:MergeBookmarks()
-            NetrwKeepj call remove(g:netrw_bookmarklist,iremove-1)
-            echo "removed ".dremove." from g:netrw_bookmarklist"
+            echo "Bookmark list is empty."
         endif
 
         try
